@@ -1,15 +1,8 @@
----
-output:
-  html_document:
-    keep_md: yes
----
 ####PA1_Template
-```{r, echo=FALSE}
-date<-Sys.Date()
-```
+
 Author: Alice AN
 
-Created: `r date`
+Created: 2015-02-15
 
 This file was created for a peer review assessment. 
 
@@ -26,12 +19,12 @@ The variables included in this dataset are:
 
 
 ####Loading and preprocessing the data
-```{r, message=FALSE}
+
+```r
 unzip("activity.zip")
 activityData<-read.csv("activity.csv")
 library(dplyr)
 Data<-activityData%>%mutate(date=as.character(date))%>%mutate(date=as.Date(date))
-
 ```
 
 
@@ -40,7 +33,8 @@ Data<-activityData%>%mutate(date=as.character(date))%>%mutate(date=as.Date(date)
 ####Total number of steps taken per day
 This section ignores the missing values in the dataset. This shows a histogram of the total number of steps taken each day and calculates the mean and median number of steps per day. 
 
-```{r}
+
+```r
 totalSteps<-Data%>%
         select(steps, date)%>%
         group_by(date)%>%
@@ -51,16 +45,18 @@ totalSteps<-Data%>%
 hist(totalSteps$totalSteps, xlab="Total Steps Per Day", main=paste("Histogram of Total Steps Per Day"))
 ```
 
-```{r, results='asis'}
+![](PA1_template_files/figure-html/unnamed-chunk-3-1.png) 
 
+
+```r
  median<-median(totalSteps$totalSteps, na.rm=TRUE)
  meanTotal<-as.integer(mean(totalSteps$totalSteps, na.rm=TRUE))
 ```
 
 
-The mean number of total steps taken per day is `r meanTotal`
+The mean number of total steps taken per day is 10766
 
-The median number of total steps taken per day is `r median` 
+The median number of total steps taken per day is 10765 
 
 
 
@@ -68,7 +64,8 @@ The median number of total steps taken per day is `r median`
 ####What is the average daily activity pattern?
 
 This plot attempts to explore an answer to the question:which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps? Missing values are ignored. 
-```{r}
+
+```r
 timeseries<-Data%>%
         group_by(interval)%>%
         summarize(averageSteps=mean(steps, na.rm=TRUE))
@@ -76,10 +73,11 @@ ranktimeseries<-timeseries[order(timeseries$averageSteps, decreasing=TRUE),]
 IntervalwmostSteps<-ranktimeseries[1,1]
 
 plot(timeseries$interval, timeseries$averageSteps, type="l", col="red", xlab="Interval", ylab="Average # of Steps")
-
 ```
 
-The interval with most steps average across all days is `r IntervalwmostSteps` 
+![](PA1_template_files/figure-html/unnamed-chunk-5-1.png) 
+
+The interval with most steps average across all days is 835 
 
 
 
@@ -87,15 +85,17 @@ The interval with most steps average across all days is `r IntervalwmostSteps`
 ####Imputing missing values
 
 This calculates the total number of missing values (NAs) in the dataset 
-```{r}
+
+```r
 missingvalues<-length(is.na(Data))
 ```
 
-The total number of missing values is `r missingvalues`.
+The total number of missing values is 52704.
 
 These missing values will be filled with the mean for that 5 minute interval. 
 
-```{r, message=FALSE}
+
+```r
 newData<-Data %>% 
         group_by(interval) %>% 
         mutate(steps = ifelse(is.na(steps), 
@@ -106,7 +106,8 @@ newData<-Data %>%
 With the missing values replaced, we'll create a histogram of the total number of steps taken each day. To show the effect of the NA replacement, we'll overlap the new Histogram in red, with the previous histogram (in blue). 
 
 
-```{r}
+
+```r
 newtotalSteps<-newData%>%
         select(steps, date)%>%
         group_by(date)%>%
@@ -117,21 +118,23 @@ hist(totalSteps$totalSteps, col=rgb(0,0,1,0.5), add=T)
 box()
 ```
 
+![](PA1_template_files/figure-html/unnamed-chunk-8-1.png) 
+
 This calculates and reports the mean and median total number of steps taken per day using the data with the missing values replaced. 
 
-```{r}
 
+```r
  newmedian<-median(newtotalSteps$totalSteps, na.rm=TRUE)
  newmeanTotal<-as.integer(mean(newtotalSteps$totalSteps, na.rm=TRUE)) 
 ```
 
-The calculated mean number of total steps taken per day  without replacing NA values is `r meanTotal`
+The calculated mean number of total steps taken per day  without replacing NA values is 10766
 
-The calculated mean number of total steps taken per day  with NA values replaced `r newmeanTotal`
+The calculated mean number of total steps taken per day  with NA values replaced 10749
 
-The calculated median number of total steps taken per day  without replacing NA values is `r median`
+The calculated median number of total steps taken per day  without replacing NA values is 10765
 
-The calculated median number of total steps taken per day  with NA values replaced `r newmedian`
+The calculated median number of total steps taken per day  with NA values replaced 10641
 
 
 
@@ -139,21 +142,24 @@ The calculated median number of total steps taken per day  with NA values replac
 ####Compare the number of steps on weekdays and weekends
 
 Create a factor variable for "weekday" and "weekend"
-```{r}
+
+```r
 dateData<-cbind(newData, weekdays=weekdays(Data$date))
 dateData2<-dateData
 levels(dateData2$weekdays)<-c("Weekday", "Weekday", "Weekend", "Weekend", "Weekday", "Weekday", "Weekday")
 ```
 
 The code below creates a panel plot that compares the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis).
-```{r}
+
+```r
 panelData<-dateData2%>%
         group_by(interval, weekdays)%>%
         summarize(averageSteps=mean(steps))
 
 library(ggplot2)
 qplot(interval, averageSteps, data=panelData, colour=weekdays, facets=weekdays~., geom=c("line"))
-
 ```
+
+![](PA1_template_files/figure-html/unnamed-chunk-11-1.png) 
 
 
